@@ -2,6 +2,8 @@ package com.chandan.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.chandan.model.CloudVender;
+import com.chandan.response.ResponseHandler;
 import com.chandan.service.CloudVenderService;
 
 @RestController
@@ -30,8 +33,9 @@ public class CloudVendorController {
 	}
 
 	@GetMapping("{vendorId}")
-	public CloudVender getCloudVendorDetails(@PathVariable("vendorId") String vendorId) {
-		return cloudVendorService.getCloudVendor(vendorId);
+	public ResponseEntity<Object> getCloudVendorDetails(@PathVariable("vendorId") String vendorId) {
+		return ResponseHandler.responseBuilder("Requested Vender Details are give here", HttpStatus.OK,
+				cloudVendorService.getCloudVendor(vendorId));
 	}
 
 	@GetMapping(value = "/getAll")
