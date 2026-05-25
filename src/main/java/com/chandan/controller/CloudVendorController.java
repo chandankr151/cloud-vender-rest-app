@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.chandan.exception.CloudVendorNotFoundException;
 import com.chandan.model.CloudVender;
 import com.chandan.response.ResponseHandler;
 import com.chandan.service.CloudVenderService;
@@ -27,15 +28,24 @@ public class CloudVendorController {
 		this.cloudVendorService = cloudVenderService;
 	}
 
-	@GetMapping("home")
-	public String getHome() {
-		return "From Home";
+	@GetMapping("/home")
+	public ResponseEntity<?> getHome() {
+		return ResponseHandler.responseBuilder("From Home, GetMapping has called", HttpStatus.ACCEPTED, new Object());
 	}
 
-	@GetMapping("{vendorId}")
-	public ResponseEntity<Object> getCloudVendorDetails(@PathVariable("vendorId") String vendorId) {
-		return ResponseHandler.responseBuilder("Requested Vender Details are give here", HttpStatus.OK,
-				cloudVendorService.getCloudVendor(vendorId));
+	@GetMapping(value = "getById/{vendorId}")
+	public ResponseEntity<Object> getCloudVendorDetails(@PathVariable(name = "vendorId") String vendorId) {
+		try {
+			CloudVender cloudVendor = cloudVendorService.getCloudVendor(vendorId);
+			if (cloudVendor != null)
+				return ResponseHandler.responseBuilder("Requested Vender Details are give here", HttpStatus.FOUND,
+						cloudVendor);
+			else
+				return ResponseHandler.responseBuilder("CloudVendor couldn't found with given id", HttpStatus.NOT_FOUND,
+						" ");
+		} catch (Exception ex) {
+			throw new CloudVendorNotFoundException("Error Occured");
+		}
 	}
 
 	@GetMapping(value = "/getAll")
@@ -43,21 +53,43 @@ public class CloudVendorController {
 		return cloudVendorService.getAllCloudVendors();
 	}
 
-	@PostMapping
-	public String createCloudVendorDetails(@RequestBody CloudVender cloudVendor) {
-		String cloudVendor2 = cloudVendorService.createCloudVendor(cloudVendor);
-		return cloudVendor2;
+	@PostMapping(value = "/create")
+	public ResponseEntity<?> createCloudVendorDetails(@RequestBody CloudVender cloudVendor) {
+		ResponseEntity<Object> responseBuilder = ResponseHandler.responseBuilder(
+				"CloudVender Client created successfully", HttpStatus.CREATED,
+				cloudVendor + "\n" + cloudVendorService.createCloudVendor(cloudVendor));
+		return responseBuilder;
 	}
 
-	@PutMapping
-	public String updateCloudVendorDetails(@RequestBody CloudVender cloudVendor) {
-		String updated = cloudVendorService.updateCloudVendor(cloudVendor);
-		return updated;
+	@PutMapping(value = "/update")
+	public ResponseEntity<?> updateCloudVendorDetails(@RequestBody CloudVender cloudVendor) {
+
+		try {
+			String updated = cloudVendorService.updateCloudVendor(cloudVendor);
+			if (updated != null) {
+				return ResponseHandler.responseBuilder("CloudVendor updated successfully", HttpStatus.OK, cloudVendor);
+			} else {
+				return ResponseHandler.responseBuilder("Couldn't update record", HttpStatus.BAD_REQUEST, " ");
+			}
+		} catch (Exception ex) {
+			throw new CloudVendorNotFoundException("Couldn't Update CloudVendor as error occured during update");
+		}
 	}
 
-	@DeleteMapping("{vendorId}")
-	public String deleteCloudVendorDetails(@PathVariable("vendorId") String vendorId) {
-		String delete = cloudVendorService.deleteCloudVendor(vendorId);
-		return delete;
+	@DeleteMapping(value = "delete/{vendorId}")
+	public ResponseEntity<?> deleteCloudVendorDetails(@PathVariable("vendorId") String vendorId) {
+
+		try {
+			CloudVender cloudVendor = cloudVendorService.getCloudVendor(vendorId);
+			if (cloudVendor != null) {
+				return ResponseHandler.responseBuilder("CloudVendor with given id is deleted successfully",
+						HttpStatus.OK, cloudVendorService.deleteCloudVendor(vendorId) + cloudVendor);
+			} else {
+				return ResponseHandler.responseBuilder("Can't Delete CloudVendor with given id as record not found",
+						HttpStatus.NOT_FOUND, "No Record is available");
+			}
+		} catch (Exception ex) {
+			throw new CloudVendorNotFoundException("Couldn't saved your client as error occured during save");
+		}
 	}
 }

@@ -20,10 +20,7 @@ public class CloudVenderServiceImpl implements CloudVenderService {
 	@Override
 	public String createCloudVendor(CloudVender cloudVendor) {
 		CloudVender save = repo.save(cloudVendor);
-		if (save != null)
-			return "Save Success";
-		else
-			throw new CloudVendorNotFoundException("Couldn't saved your client as error occured during save");
+		return " "+save;
 	}
 
 	@Override
